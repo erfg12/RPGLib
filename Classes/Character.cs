@@ -22,11 +22,11 @@ public enum InventorySlot
 public class Character
 {
     public string name { get; set; }
-    public int level { get; set; }
-    public int experience { get; set; }
+    public int level { get; set; } = 1;
+    public int experience { get; set; } = 0;
     public Vector3 position { get; set; } = new Vector3();
     public Stats stats { get; set; } = new Stats();
     public Race race { get; set; } = new Race();
     public Bag inventory { get; set; } = new Bag();
-    public Money money { get; set; } = new Money();
+    public int money { get; set; } = 0;
 }

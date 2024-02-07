@@ -1,6 +1,5 @@
 ﻿using RPGLib.Classes;
 using System.Numerics;
-using System.Reflection;
 
 namespace RPGLib;
 public class Commands
@@ -21,27 +20,28 @@ public class Commands
             character.inventory.items.Add(item);
         }
 
-        character.money.gold += corpse.money.gold;
+        character.money += corpse.money;
     }
 
-    public void SellItem(Item item, Character character, Character merchant)
+    public void SellItem(ref Item item, Character character, Character merchant)
     {
-        character.money.gold += item.worthGold;
-        item = null;
+        character.money += item.worthGold;
+        merchant.inventory.items.Add(item);
+        character.inventory.items.Remove(item);
     }
 
     public void BuyItem(Item item, Character character, Character merchant)
     {
-        if (character.money.gold < item.worthGold)
+        if (character.money < item.worthGold)
             return;
 
-        character.money.gold -= item.worthGold;
+        character.money -= item.worthGold;
         character.inventory.items.Add(item);
     }
 
     public void Equip(Character character, Item item, InventorySlot slot)
     {
-        var i = character.inventory.items.Where(x => x.Equals(item)).First();
+        Item i = character.inventory.items.Where(x => x.Equals(item)).First();
         UnEquip(character, slot);
         if (i.inventorySlot == slot)
             i.EquipedSlot = slot;
@@ -49,15 +49,41 @@ public class Commands
 
     public void UnEquip(Character character, InventorySlot slot)
     {
-        var oldi = character.inventory.items.Where(x => x.EquipedSlot == slot).First();
+        Item oldi = character.inventory.items.Where(x => x.EquipedSlot == slot).First();
         if (oldi != null) // unequip old slotted item
         {
             oldi.EquipedSlot = InventorySlot.none;
         }
     }
 
-    public void TradeItems(Character Sender, Character Receiver)
+    public void TradeItems(Character Sender, List<Item> SenderItems, int SenderMoney, Character Receiver, List<Item> ReceiverItems, int ReceiverMoney)
     {
+        if (SenderItems.Count > 0)
+        {
+            foreach (Item item in SenderItems)
+            {
+                Item oldi = Sender.inventory.items.Where(x => x.name == item.name).First();
+                if (oldi != null) // unequip old slotted item
+                {
+                    oldi.EquipedSlot = InventorySlot.none;
+                    Receiver.inventory.items.Add(oldi);
+                }
+            }
+        }
+        Receiver.money += SenderMoney;
 
+        if (ReceiverItems.Count > 0)
+        {
+            foreach (Item item in ReceiverItems)
+            {
+                Item oldi = Receiver.inventory.items.Where(x => x.name == item.name).First();
+                if (oldi != null) // unequip old slotted item
+                {
+                    oldi.EquipedSlot = InventorySlot.none;
+                    Sender.inventory.items.Add(oldi);
+                }
+            }
+        }
+        Sender.money += ReceiverMoney;
     }
 }
